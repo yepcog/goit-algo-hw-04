@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36202.13 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "goit-algo-hw-04", "goit-algo-hw-04\goit-algo-hw-04.pyproj", "{215F502A-F6F0-4EB1-863A-0A708A04967F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{215F502A-F6F0-4EB1-863A-0A708A04967F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{215F502A-F6F0-4EB1-863A-0A708A04967F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B1F0576F-8359-4AFD-B568-22531D050AD5}
+	EndGlobalSection
+EndGlobal
