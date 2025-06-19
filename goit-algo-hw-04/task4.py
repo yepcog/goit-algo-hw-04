@@ -7,11 +7,12 @@ def parse_input(user_input) -> tuple:
 
 def arg_sep(args) -> tuple:
 	alpha_args = []
+	phone = ""
 	for arg in args:
 		if arg.isalpha():
 			alpha_args.append(arg)
 		else:
-			phone = arg
+			phone += arg
 	name = " ".join(alpha_args)
 	return name, phone
 
@@ -108,12 +109,18 @@ def main():
 
 		match command:
 			case "hello":
-				print(f"How can I help you?\n\
+				if args != []:
+					print(invalid_command)
+				else:
+					print(f"How can I help you?\n\
 In order to view all available commands you can use 'help' command \
 or 'help command' pattern to get information on a specific command")
 			case "exit":
-				print("Bye!")
-				sys.exit(0)
+				if args != []:
+					print(invalid_command)
+				else:
+					print("Bye!")
+					sys.exit(0)
 			case "help":
 				if args == []:
 					print(available_commands)
@@ -125,7 +132,7 @@ or 'help command' pattern to get information on a specific command")
 						print(invalid_command)
 			case "all":
 				if args != []:
-					print(invalid_args)
+					print(invalid_command)
 				else:
 					print(contacts)
 			case "add":
