@@ -9,10 +9,17 @@ def arg_sep(args) -> tuple:
 	alpha_args = []
 	phone = ""
 	for arg in args:
-		if arg.isalpha():
+		if phone != "" and arg.isalpha():
+			return invalid_args
+		elif arg.isalpha():
 			alpha_args.append(arg)
-		else:
+		# temporary solution
+		elif arg.isdigit():
 			phone += arg
+		else:
+			return "Inappropriate contact Name or phone number."
+	if phone == "":
+		return invalid_args
 	name = " ".join(alpha_args)
 	return name, phone
 
@@ -44,14 +51,19 @@ invalid_args = "Arguments don't match a command pattern.\n\
 You can use 'help' command or 'help command' pattern to verify argument requirements for corresponding command"
 
 def add_contact(args, contacts) -> str:
-	name, phone = arg_sep(args)
-	if name in contacts:
-		return "Contact is already registered"
-	for key, value in contacts.items():
-		if value == phone:
-			return "This phone number is already associated with another contact"
-	contacts[name] = phone
-	return "Contact added."
+	try:
+		name, phone = arg_sep(args)
+		if name in contacts:
+			return "Contact is already registered."
+		for key, value in contacts.items():
+			if value == phone:
+				return "This phone number is already associated with another contact."
+		contacts[name] = phone
+		return "Contact added."
+	except ValueError:
+		return arg_sep(args)
+	except TypeError:
+		return invalid_args
 
 def show_phone(args, contacts) -> str:
 	name = " ".join(args)
@@ -59,31 +71,36 @@ def show_phone(args, contacts) -> str:
 		if char.isdigit():
 			return invalid_args
 	if name not in contacts and name.strip() != "":
-		return "Contact is not on the list"
+		return "Contact is not on the list."
 	elif name.strip() == "":
 		return invalid_args
 	return contacts.get(name)
 
 def change_contact(args, contacts) -> str:
-	name, phone = arg_sep(args)
-	if name not in contacts:
-		return "Contact is not on the list"
-	elif contacts[name] == phone:
-		return "This phone number is already associated with corresponding contact"
-	for key, value in contacts.items():
-		if value == phone:
-			return "This phone number is already associated with another contact"
-	contacts[name] = phone
-	return "Phone number changed."
+	try:
+		name, phone = arg_sep(args)
+		if name not in contacts:
+			return "Contact is not on the list."
+		elif contacts[name] == phone:
+			return "This phone number is already associated with corresponding contact."
+		for key, value in contacts.items():
+			if value == phone:
+				return "This phone number is already associated with another contact."
+		contacts[name] = phone
+		return "Phone number changed."
+	except ValueError:
+		return arg_sep(args)
+	except TypeError:
+		return invalid_args
 
-def modify_contact(new_name, contacts, old_name) -> str:
+def modify_contact(old_name, new_name, contacts) -> str:
 	# requires A LOT of rethinking
 	if new_name in contacts:
-		return "Contact with this name is already registered"
+		return "Contact with this name is already registered."
 	try:
 		phone = contacts.pop(old_name)
 	except KeyError:
-		return "Contact is not on the list"
+		return "Contact is not on the list."
 	contacts[new_name] = phone
 	return "Contact modified."
 
@@ -97,8 +114,91 @@ def delete_contact(args, contacts) -> str:
 	try:
 		del contacts[name]
 	except KeyError:
-		return "Contact is not on the list"
+		return "Contact is not on the list."
 	return "Contact deleted."
+
+# temp handlers
+
+hello_str = "How can I help you?\n\
+In order to view all available commands you can use 'help' command \
+or 'help command' pattern to get information on a specific command"
+
+def no_args(command, args, other=None) -> str | list:
+	if args != []:
+		if command == "help":
+			help_command = args[0].casefold()
+			if args.__len__() > 1:
+				return invalid_command
+			elif help_command in other:
+				return f"'{help_command}': '{other.get(help_command)}'"
+			else: 
+				return invalid_command
+		elif command == "add":
+			return add_contact(args, other)
+		elif command == "change":
+			return change_contact(args, other)
+		elif command == "modify":
+			return prep_modify(args, other)
+			#try:
+				#old_name, new_name = prep_modify(args, other)
+				#return modify_contact(old_name, new_name, other)
+			#except ValueError:
+				#return prep_modify(args, other)
+			#except TypeError:
+				#return prep_modify(args, other)
+		else:
+			return invalid_command
+	elif args == []:
+		if command == "hello":
+			return other
+		elif command == "exit":
+			print("Bye!")
+			return sys.exit(0)
+		elif command == "help":
+			return list(other.keys())
+		elif command == "all":
+			return other
+		elif command == "add":
+			return invalid_args
+		elif command == "change":
+			return invalid_args
+		elif command == "modify":
+			return invalid_args
+
+def prep_modify(args, contacts) -> str:
+		old_name = " ".join(args)
+		old_isdigit = False
+		for char in old_name:
+			if char.isdigit():
+				old_isdigit = True
+				return invalid_args
+		if old_name.strip() == "":
+			return invalid_args
+		elif old_name not in contacts and old_isdigit == False:
+			return "Contact is not on the list."
+		elif old_name in contacts:
+			while True:
+				new_name = input("Enter a new Name: ")
+				new_isdigit = False
+				for char in new_name:
+					if char.isdigit():
+						new_isdigit = True
+						print("Inappropriate contact Name.")
+						break
+				try:
+					new_command, *args = new_name.split()
+					if new_name.strip() == "exit" or new_command == "exit" and args == []:
+						return "Contact modification cancelled."
+					elif new_command in available_commands and new_isdigit == False:
+						print("Inappropriate contact Name.\n\
+You can use 'exit' command to cancel contact modification")
+					elif new_isdigit == False:
+						#return old_name, new_name
+						return modify_contact(old_name, new_name, contacts)
+				except ValueError:
+					print("To modify a contact's Name, a new Name must be provided.\n\
+You can use 'exit' command to cancel contact modification")
+					continue
 
 def main():
 	contacts = {}
@@ -109,76 +209,28 @@ def main():
 
 		match command:
 			case "hello":
-				if args != []:
-					print(invalid_command)
-				else:
-					print(f"How can I help you?\n\
-In order to view all available commands you can use 'help' command \
-or 'help command' pattern to get information on a specific command")
+				# changed
+				print(no_args(command, args, hello_str))
 			case "exit":
-				if args != []:
-					print(invalid_command)
-				else:
-					print("Bye!")
-					sys.exit(0)
+				# changed
+				print(no_args(command, args))
 			case "help":
-				if args == []:
-					print(available_commands)
-				elif args != []:
-					help_command = args[0].casefold()
-					if help_command in available_commands:
-						print(f"'{help_command}': '{available_commands.get(help_command)}'")
-					else: 
-						print(invalid_command)
+				# changed
+				print(no_args(command, args, available_commands))
 			case "all":
-				if args != []:
-					print(invalid_command)
-				else:
-					print(contacts)
+				# changed
+				print(no_args(command, args, contacts))
 			case "add":
-				try:
-					print(add_contact(args, contacts))
-				except UnboundLocalError:
-					print(invalid_args)
+				# changed
+				print(no_args(command, args, contacts))
 			case "phone":
 				print(show_phone(args, contacts))
 			case "change":
-				try:
-					print(change_contact(args, contacts))
-				except UnboundLocalError:
-					print(invalid_args)
+				# changed
+				print(no_args(command, args, contacts))
 			case "modify":
-				# too complicated, but it does the thing
-				old_name = " ".join(args)
-
-				old_isdigit = False
-				for char in old_name:
-					if char.isdigit():
-						old_isdigit = True
-						print(invalid_args)
-						break
-				if old_name.strip() == "":
-					print(invalid_args)
-				elif old_name not in contacts and old_isdigit == False:
-					print("Contact is not on the list")
-				elif old_name in contacts:
-					# adding a loop there might be usefull
-					new_name = input("Enter a new Name: ")
-					new_isdigit = False
-					for char in new_name:
-						if char.isdigit():
-							new_isdigit = True
-							print(invalid_args)
-							break
-					try:
-						new_command, *args = new_name.split()
-						if new_command in available_commands:
-							print(invalid_args)
-						elif new_isdigit == False:
-							print(modify_contact(new_name, contacts, old_name))
-					except ValueError:
-						print("Arguments don't match a command pattern.\n\
-To modify a contact's Name, a new Name must be provided")
+				# changed
+				print(no_args(command, args, contacts))
 			case "delete":
 				print(delete_contact(args, contacts))
 			case _:
